@@ -21,7 +21,6 @@
 - [Future Scope](#future_scope)
 - [Data](#data)
 - [Usage](#usage)
-- [Contributing](../CONTRIBUTING.md)
 - [Authors](#authors)
 - [Acknowledgments](#acknowledgments)
 
