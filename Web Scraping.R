@@ -161,7 +161,7 @@ for (i in seq(7,10)){
 }
 
 
-#Scraping Event Location Data
+#Scraping Event Location Data (***Incomplete***)
 #-----------------------------------------------------------------------------------------------------------------------------
 Stadiums=count(EventsInfo,X3)
 #Stadiums$x=as.character((Stadiums$x))
