@@ -1,0 +1,172 @@
+---
+title: "UFC EDA"
+author: "Alvin Wendt"
+date: "5/27/2021"
+output: html_document
+---
+
+Read in Libraries
+```{r}
+library(tidyverse)
+library(readxl)
+library(hrbrthemes)
+library(dlookr)
+library(DataExplorer)
+library(ggthemes)
+library(corrplot)
+library(reshape2)
+library(randomForest)
+```
+
+Import Data
+```{r}
+data_raw <- read.csv("UFC Data.csv",header = TRUE)
+```
+
+```{r}
+data_NoNAs<-data_raw[is.na(data_raw)] = 0
+```
+
+```{r}
+EDA_Report <- create_report(data_raw)
+```
+
+```{r}
+str(data_raw)
+```
+
+
+```{r}
+describe(data_raw)
+```
+
+
+```{r}
+correlate(data_raw)
+eda_report(data_raw)
+```
+
+
+```{r}
+plot_correlate(data_raw)
+```
+
+
+```{r}
+```
+
+
+```{r}
+```
+
+
+```{r}
+```
+
+
+```{r}
+```
+
+
+```{r}
+```
+
+
+```{r}
+```
+
+
+Spread Vs Anomalies
+```{r}
+data_raw %>%
+  ggplot( aes(x=Spread, fill=as.factor(Anomaly))) +
+    geom_histogram( color="#e9ecef", alpha=0.3, position = 'identity',bins = 100) +
+    scale_fill_manual(values=c("#69b3a2", "#404080")) +
+    labs(fill="")
+```
+
+
+```{r}
+
+Data_RF<-randomForest(factor(Anomaly)~.,data_NoNAs,ntree=150)
+Data_RF
+
+```
+
+
+```{r}
+importance    <- importance(Data_RF)
+
+varImportance <- data.frame(Variables = row.names(importance), 
+                            Importance = round(importance[ ,'MeanDecreaseGini'],2))
+
+# Create a rank variable based on importance
+rankImportance <- varImportance %>%
+  mutate(Rank = paste0('#',dense_rank(desc(Importance))))
+
+# Use ggplot2 to visualize the relative importance of variables
+ggplot(rankImportance, aes(x = reorder(Variables, Importance), 
+                           y = Importance, fill = Importance)) +
+  geom_bar(stat='identity') + 
+  geom_text(aes(x = Variables, y = 0.5, label = Rank),
+            hjust=0, vjust=0.55, size = 4, colour = 'red') +
+  labs(x = 'Variables') +
+  coord_flip() + 
+  theme_classic()
+```
+
+
+```{r}
+
+```
+
+
+```{r}
+
+```
+
+
+```{r}
+
+```
+
+
+```{r}
+
+```
+
+
+```{r}
+
+```
+
+
+```{r}
+
+```
+
+
+```{r}
+
+```
+
+
+```{r}
+
+```
+
+
+```{r}
+
+```
+
+
+```{r}
+
+```
+
+
+```{r}
+
+```
+
