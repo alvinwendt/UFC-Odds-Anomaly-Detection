@@ -10,7 +10,7 @@
 </div>
 
 
-<h2 align="center"> This project is a final capstone for Nashville Software School (NSS) to understand UFC fight outcomes and detect sports better odds anomalies related to a fight's expected outcome.
+<h2 align="center"> This project is a final capstone for Nashville Software School (NSS) to understand UFC fight features to create a predictive model and detect oddsmaker odds anomalies related to a fight's expected outcome.
     <br> 
 </p>
 
@@ -25,7 +25,7 @@
 - [Acknowledgments](#acknowledgments)
 
 ## 🧐 Problem Statement <a name = "problem_statement"></a>
-Is it possible to understand the relationships between expected outcomes of UFC fights and their related sport bet odds and create a model to disclose anomalies between them?
+Is it possible to understand to create a model to predict expected outcomes of UFC fights and be able to compare those outcomes to sports bet odds in order to detect anomalies?
 
 
 ## 💡 Idea / Solution <a name = "idea"></a>
@@ -41,7 +41,7 @@ Is it possible to understand the relationships between expected outcomes of UFC 
 I would love to have created a live model that predicts based on adjusting odds during a fight. Additionally, more time dedicated to the predictive model for expected outcomes with an R Shiny App implementation would have been fun and valuable.
 
 ## 🏁 Data Collection with Web Scraping <a name = "data"></a>
-Scraped Data from various sources, including [Sherdog.com](https://www.sherdog.com/) and [BestFightOdds.com](https://www.bestfightodds.com/)
+Scraped Data from various sources, including [ufcstats.com](https://www.ufcstats.com/), [Sherdog.com](https://www.sherdog.com/) and [BestFightOdds.com](https://www.bestfightodds.com/)
 
 ## 🎈 Features <a name="features"></a>
 |Label        | Description |
