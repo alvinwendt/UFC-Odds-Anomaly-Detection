@@ -105,7 +105,7 @@ Scraped Data from various sources, including [Sherdog.com](https://www.sherdog.c
 |avg_sub_att_dif|R_Fighter Average Submissions Attempted Minus B_Fighter Average Submissions Attempted|
 |avg_td_dif|R_Fighter Average Takedowns Minus B_Fighter Average Takedowns|
 |empty_arena|Was the fight held in a empty no crowd arena?|
-
+</details>
 
 
 
