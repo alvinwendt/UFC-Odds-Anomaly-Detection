@@ -18,10 +18,11 @@
 - [Problem Statement](#problem_statement)
 - [Idea / Solution](#idea)
 - [Dependencies / Limitations](#limitations)
-- [Future Scope](#future_scope)
 - [Data](#data)
 - [Features](#features)
 - [Model](#model)
+- [Future Scope](#future_scope)
+- [Tools Used for Project](#built)
 - [Authors](#authors)
 - [Acknowledgments](#acknowledgments)
 
@@ -37,9 +38,6 @@ Is it possible to understand to create a model to predict expected outcomes of U
 - Determinability of the expected outcome of fights are highly volatile
 - Sports Betting odd doesn't necessarily follow fight data but adjust to market demand
 - Creation of a metric and baseline to identify anomaliess
-
-## 🚀 Future Scope <a name = "future_scope"></a>
-I would love to have created a live model that predicts based on adjusting odds during a fight. Additionally, more time dedicated to the predictive model for expected outcomes with an R Shiny App implementation would have been fun and valuable.
 
 ## 🏁 Data Collection with Web Scraping <a name = "data"></a>
 Scraped Data from various sources, including [ufcstats.com](https://www.ufcstats.com/), [Sherdog.com](https://www.sherdog.com/) and [BestFightOdds.com](https://www.bestfightodds.com/)
@@ -111,13 +109,15 @@ Scraped Data from various sources, including [ufcstats.com](https://www.ufcstats
 ## 💻 Model <a name = "model"></a>
 - In Progress...
 
-## ⛏️ Built With <a name = "tech_stack"></a>
+## 🚀 Future Scope <a name = "future_scope"></a>
+I would love to have created a live model that predicts based on adjusting odds during a fight. Additionally, more time dedicated to the predictive model for expected outcomes with an R Shiny App implementation would have been fun and valuable.
+
+## ⛏️ Tools Used <a name = "built"></a>
 - [R](https://www.r-project.org/) - Primary Platform
 - [R Shiny](https://shiny.rstudio.com/) - Application Platform
 
 ## ✍️ Author <a name = "authors"></a>
 - [Alvin Wendt](https://alvinwendt.github.io/Alvin-Wendt-Portfolio/) - Idea & Work
-
 
 ## 🎉 Acknowledgments <a name = "acknowledgments"></a>
   Hat tip to the following people for their support during this capstone project:
