@@ -20,7 +20,8 @@
 - [Dependencies / Limitations](#limitations)
 - [Future Scope](#future_scope)
 - [Data](#data)
-- [Usage](#features)
+- [Features](#features)
+- [Model](#model)
 - [Authors](#authors)
 - [Acknowledgments](#acknowledgments)
 
@@ -107,7 +108,8 @@ Scraped Data from various sources, including [ufcstats.com](https://www.ufcstats
 |empty_arena|Was the fight held in a empty no crowd arena?|
 </details>
 
-
+## 💻 Model <a name = "model"></a>
+- In Progress...
 
 ## ⛏️ Built With <a name = "tech_stack"></a>
 - [R](https://www.r-project.org/) - Primary Platform
