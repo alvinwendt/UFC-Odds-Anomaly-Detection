@@ -116,17 +116,17 @@ Scraped Data from various sources, including [UFCstats.com](https://www.ufcstats
 5. Deep Learning
 6. Ensemble Stacking
 
-### ***Of the 4 models, X produced the most accurate outcome***
+### ***Below are the scoreing metrics from the models produced***
 
-|Model        | Accuracy |Recall| Precision | F1-Score |
-| ---------- |-----------| -------------| ------ |-----------|
-|GLM       | 0.61 |0.65| 0.75 | 0.70 |
-|GBM       | 0.61 |0.64| 0.77 | 0.70 |
-|Random Forest  | 0.61 |0.63| 0.85 | 0.72 |
-|Deep Learning | 0.55 |0.62| 0.65 | 0.63 |
-|Random Forest (Hypertuned) | 0.57 |0.91| 0.56 | 0.79 |
-|XGBoost (Hypertuned) | 0.57 |0.81| 0.56 | 0.67 |
-|Stacked Ensemble   | 0.63 |0.66| 0.77 | 0.72 |
+|Model        |Library Used| Accuracy |Recall| Precision | F1-Score |
+| ---------- |-----------| --|-------------| ------ |-----------|
+|GLM       |H2o| 0.61 |0.65| 0.75 | 0.70 |
+|GBM       | H2o|0.61 |0.64| 0.77 | 0.70 |
+|Random Forest  |H2o| 0.61 |0.63| 0.85 | 0.72 |
+|Deep Learning |H2o| 0.55 |0.62| 0.65 | 0.63 |
+|Random Forest (Hypertuned) |Tidymodels| 0.57 |0.91| 0.56 | 0.79 |
+|XGBoost (Hypertuned) |Tidymodels| 0.57 |0.81| 0.56 | 0.67 |
+|Stacked Ensemble   |H2o| 0.63 |0.66| 0.77 | 0.72 |
 
 A last approach was to perform a stacked ensemble method by combining models. This is a proven method to boost model performance.
 After stacking was performed, the new model returned the folloing accuracy
