@@ -108,12 +108,16 @@ Scraped Data from various sources, including [UFCstats.com](https://www.ufcstats
 </details>
 
 ## 💻 Model <a name = "model"></a>
-### There were 5 models used to predict fight outcomes
+### The following were the models utilized to create a predictive model:
+***H2o Library***
 1. Generalized Linear Regression (GLM)
 2. Random Forest with Hypertuning
+3. Gradiant Boosting Model (GBM)
+4. Deep Learning
+
+***Tidyverse Library***
+2. Random Forest with Hypertuning
 3. XGBoost with Hypertuning
-4. Gradiant Boosting Model (GBM)
-5. Deep Learning
 
 ### ***Below are the scoreing metrics from the models produced***
 
