@@ -116,8 +116,8 @@ Scraped Data from various sources, including [UFCstats.com](https://www.ufcstats
 4. Deep Learning
 
 ***Tidyverse Library***
-2. Random Forest with Hypertuning
-3. XGBoost with Hypertuning
+1. Random Forest with Hypertuning
+2. XGBoost with Hypertuning
 
 ### ***Below are the scoreing metrics from the models produced***
 
