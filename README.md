@@ -108,13 +108,12 @@ Scraped Data from various sources, including [UFCstats.com](https://www.ufcstats
 </details>
 
 ## 💻 Model <a name = "model"></a>
-### There were 4 models used to predict fight outcomes
+### There were 5 models used to predict fight outcomes
 1. Generalized Linear Regression (GLM)
 2. Random Forest with Hypertuning
 3. XGBoost with Hypertuning
 4. Gradiant Boosting Model (GBM)
 5. Deep Learning
-6. Ensemble Stacking
 
 ### ***Below are the scoreing metrics from the models produced***
 
@@ -126,10 +125,13 @@ Scraped Data from various sources, including [UFCstats.com](https://www.ufcstats
 |Deep Learning |H2o| 0.55 |0.62| 0.65 | 0.63 |
 |Random Forest (Hypertuned) |Tidymodels| 0.57 |0.91| 0.56 | 0.79 |
 |XGBoost (Hypertuned) |Tidymodels| 0.57 |0.81| 0.56 | 0.67 |
-|Stacked Ensemble   |H2o| 0.63 |0.66| 0.77 | 0.72 |
 
 A last approach was to perform a stacked ensemble method by combining models. This is a proven method to boost model performance.
-After stacking was performed, the new model returned the folloing accuracy
+After stacking was performed, the new model returned the folloing metrics.
+
+|Model        |Library Used| Accuracy |Recall| Precision | F1-Score |
+| ---------- |-----------| --|-------------| ------ |-----------|
+|Stacked Ensemble   |H2o| 0.63 |0.66| 0.77 | 0.72 |
 
 ## 🚀 Future Scope <a name = "future_scope"></a>
 1. Besides betting on fight outcomes, there are other types of bet such as when a round will end or how the fight will end such as a decision or knockout. I would be curious to see if a better model could be created with a difference in target variable. 
