@@ -126,7 +126,7 @@ Scraped Data from various sources, including [UFCstats.com](https://www.ufcstats
 |Deep Learning | 0.55 |0.62| 0.65 | 0.63 |
 |Random Forest (Hypertuned) | 0.57 |0.91| 0.56 | 0.79 |
 |XGBoost (Hypertuned) | 0.57 |0.81| 0.56 | 0.67 |
-|Stacked Ensemble   | 0.61 |0.65| 0.75 | 0.70 |
+|Stacked Ensemble   | 0.63 |0.66| 0.77 | 0.72 |
 
 A last approach was to perform a stacked ensemble method by combining models. This is a proven method to boost model performance.
 After stacking was performed, the new model returned the folloing accuracy
