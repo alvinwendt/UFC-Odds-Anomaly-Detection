@@ -13,6 +13,7 @@
 
 <h2 align="center"> This project is a final capstone for Nashville Software School (NSS) to understand UFC fight factors that could create a predictive model and detect sportbook odds anomalies related to a fight's expected outcome.
     <br> 
+  </div>
   
 ***Link to Presentation can be found here:***
 
