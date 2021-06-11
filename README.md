@@ -140,7 +140,7 @@ Scraped Data from various sources, including [UFCstats.com](https://www.ufcstats
 |XGBoost (Hypertuned) |Tidymodels| 0.57 |0.81| 0.56 | 0.67 |
 
 A last approach was to perform a stacked ensemble method by combining models. This is a proven method to boost model performance.
-After stacking was performed, the new model returned the folloing metrics.
+After stacking was performed, the new model returned the following metrics.
 
 |Model        |Library Used| Accuracy |Recall| Precision | F1-Score |
 | ---------- |-----------| --|-------------| ------ |-----------|
