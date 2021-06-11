@@ -11,16 +11,17 @@
 </div>
 
 
-<h2 align="center"> This project is a final capstone for Nashville Software School (NSS) to understand UFC fight factors that could create a predictive model and detect sportbook odds anomalies related to a fight's expected outcome.
+<h2 align="center"> This project is a final capstone for Nashville Software School (NSS) to understand UFC fight factors that could create a predictive model and detect sportbook odds anomalies related to a fight's expected outcome.</h2>
     <br> 
-  </div>
-  
-***Link to Presentation can be found here:***
+</p>
+</div>
 
-<a href="#" id="bottle" onclick="[document.location=this.id+](https://sway.office.com/JVqLbxoImHndAo0j?ref=Link)'.html';return false;" >
-    <img src="https://user-images.githubusercontent.com/70002987/121709186-e70d0b00-ca9d-11eb-9ccb-45b89bdc4a4d.jpg" alt="bottle" class="thumbnails" style="width:200px;" />
+
+## ***Link to Presentation can be found here:***<a href="https://www.youtube.com/youtube-id">  <img src="https://user-images.githubusercontent.com/70002987/121709186-e70d0b00-ca9d-11eb-9ccb-45b89bdc4a4d.jpg" width="100" />
 </a>
 
+</p>
+</div>
 
 ## 📝 Table of Contents
 - [Problem Statement](#problem_statement)
