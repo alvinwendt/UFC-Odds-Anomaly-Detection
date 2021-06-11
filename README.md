@@ -1,3 +1,4 @@
+
 # UFC Odds Anomaly Detection (Capstone)
 
 <p align="center">
@@ -12,7 +13,13 @@
 
 <h2 align="center"> This project is a final capstone for Nashville Software School (NSS) to understand UFC fight factors that could create a predictive model and detect sportbook odds anomalies related to a fight's expected outcome.
     <br> 
-</p>
+  
+***Link to Presentation can be found here:***
+
+<a href="#" id="bottle" onclick="[document.location=this.id+](https://sway.office.com/JVqLbxoImHndAo0j?ref=Link)'.html';return false;" >
+    <img src="https://user-images.githubusercontent.com/70002987/121709186-e70d0b00-ca9d-11eb-9ccb-45b89bdc4a4d.jpg" alt="bottle" class="thumbnails" style="width:200px;" />
+</a>
+
 
 ## 📝 Table of Contents
 - [Problem Statement](#problem_statement)
