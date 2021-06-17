@@ -120,7 +120,7 @@ Scraped Data from various sources, including [UFCstats.com](https://www.ufcstats
 ### The following were the models utilized to create a predictive model:
 ***H2o Library***
 1. Generalized Linear Regression (GLM)
-2. Random Forest with Hypertuning
+2. Random Forest
 3. Gradiant Boosting Model (GBM)
 4. Deep Learning
 
