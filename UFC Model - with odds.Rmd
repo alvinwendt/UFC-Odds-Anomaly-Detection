@@ -1,0 +1,809 @@
+---
+title: "Random Forest"
+author: "Alvin Wendt"
+date: "6/6/2021"
+output: html_document
+---
+
+# Import and Cleaning
+```{r}
+library(tidyverse)
+library(vip)
+library(skimr)
+library(h2o)
+
+UFC_raw <- read_csv("ufc-master-clean.csv")
+
+UFC_raw$date <- as.Date(UFC_raw$date , format = "%m/%d/%y")
+
+UFC_factors <- UFC_raw %>%
+  na.omit() %>%
+  mutate_if(is.character, factor) 
+
+```
+
+
+#Explore Data 
+
+Skim over features
+```{r}
+skim(UFC_factors)
+```
+
+# Create Training and Test Splits
+```{r}
+library(tidymodels)
+
+set.seed(123)
+UFC_split <- initial_split(UFC_factors, prop = .8)
+UFC_train <- training(UFC_split)
+UFC_test <- testing(UFC_split)
+```
+
+#Preprocessing
+Build Recipe for data preprocessing
+```{r}
+UFC_rec <- recipe(Winner ~ ., data = UFC_train)  %>% 
+  update_role(R_fighter,B_fighter,R_odds,B_odds,Spread,Anomaly,R_ev,B_ev,date, new_role = "ID") %>%
+  step_nzv(all_predictors()) %>% 
+  step_corr(all_numeric(), -all_outcomes()) %>% 
+  step_lincomb(all_numeric(), -all_outcomes()) %>% 
+  step_normalize(all_numeric(), -all_outcomes()) %>% 
+  step_dummy(all_nominal(), -all_outcomes(),-R_fighter,-B_fighter) 
+
+UFC_prep <- prep(UFC_rec)
+juiced <- juice(UFC_prep)
+
+UFC_rec1 <- recipe(Winner ~ ., data = UFC_test)  %>% 
+  update_role(R_fighter,B_fighter,R_odds,B_odds,Spread,Anomaly,R_ev,B_ev,date, new_role = "ID") %>%
+  step_nzv(all_predictors()) %>% 
+  step_corr(all_numeric(), -all_outcomes()) %>% 
+  step_lincomb(all_numeric(), -all_outcomes()) %>% 
+  step_normalize(all_numeric(), -all_outcomes()) %>% 
+  step_dummy(all_nominal(), -all_outcomes(),-R_fighter,-B_fighter) 
+
+UFC_prep1 <- prep(UFC_rec1)
+juiced1 <- juice(UFC_prep1)
+
+```
+
+
+#Create cross-validation resamples
+```{r}
+set.seed(234)
+UFC_folds <- vfold_cv(UFC_train)
+```
+
+#Random Forest Model
+##Tuning
+Create model specifications for random forest for tuning
+```{r}
+tune_spec <- rand_forest(
+  mtry = tune(),
+  trees = 1000,
+  min_n = tune()
+) %>%
+  set_mode("classification") %>%
+  set_engine("ranger")
+```
+
+##Create workflow container
+```{r}
+tune_wf <- workflow() %>%
+  add_recipe(UFC_rec) %>%
+  add_model(tune_spec)
+```
+
+##Enable parallel processing and run models
+```{r}
+doParallel::registerDoParallel()
+
+set.seed(345)
+
+if(file.exists("RF_model1.rda")) {
+    ## load model
+    load("RF_model1.rda")
+} else {
+    ## (re)fit the model
+    tune_res <- tune_grid(
+  tune_wf,
+  resamples = UFC_folds,
+  grid = 20
+)
+save(tune_res, file="RF_model2.rda")
+}
+
+tune_res
+```
+951 1 =40min
+##Create graph to view AUC
+```{r}
+tune_res %>%
+  collect_metrics() %>%
+  filter(.metric == "roc_auc") %>%
+  select(mean, min_n, mtry) %>%
+  pivot_longer(min_n:mtry,
+    values_to = "value",
+    names_to = "parameter"
+  ) %>%
+  ggplot(aes(value, mean, color = parameter)) +
+  geom_point(show.legend = FALSE) +
+  facet_wrap(~parameter, scales = "free_x") +
+  labs(x = NULL, y = "AUC")
+
+```
+
+##Rerun with regular grid from parameter chosen from initial tuning
+```{r}
+rf_grid <- grid_regular(
+  mtry(range = c(10, 100)),
+  min_n(range = c(5, 40)),
+  levels = 5
+)
+
+rf_grid
+```
+
+##Targeted tuning based on new chosen parameters
+```{r}
+set.seed(456)
+
+if(file.exists("RFmodelTuned.rda")) {
+    ## load model
+    load("RFmodelTuned.rda")
+} else {
+    ## (re)fit the model
+    regular_res <- tune_grid(
+  tune_wf,
+  resamples = UFC_folds,
+  grid = rf_grid
+)
+save(tune_res, file="RFmodelTuned2.rda")
+}
+
+regular_res
+```
+1046
+
+
+##Create graph to view new AUC
+```{r}
+regular_res %>%
+  collect_metrics() %>%
+  filter(.metric == "roc_auc") %>%
+  mutate(min_n = factor(min_n)) %>%
+  ggplot(aes(mtry, mean, color = min_n)) +
+  geom_line(alpha = 0.5, size = 1.5) +
+  geom_point() +
+  labs(y = "AUC")
+```
+
+##Chose best model and create final model spec
+```{r}
+best_auc <- select_best(regular_res, "roc_auc")
+
+final_rf <- finalize_model(
+  tune_spec,
+  best_auc
+)
+
+final_rf
+```
+
+##View variable importance
+```{r}
+
+final_rf %>%
+  set_engine("ranger", importance = "permutation") %>%
+  fit(Winner ~ .,
+    data = juice(UFC_prep)
+  ) %>%
+  vip(geom = "point",num_features = 20)
+```
+
+##Run last fit to fit on entire training set with best parameters
+```{r}
+final_wf <- workflow() %>%
+  add_recipe(UFC_rec) %>%
+  add_model(final_rf)
+
+
+if(file.exists("finalmodel1.rda")) {
+    ## load model
+    load("finalmodel1.rda")
+} else {
+    ## (re)fit the model
+    final_res <- final_wf %>%
+  last_fit(UFC_split)
+save(tune_res, file="finalmodel2.rda")
+}
+
+
+final_res %>%
+  collect_metrics()
+```
+153
+
+
+
+##View confusion matrix
+```{r}
+final_res %>%
+    collect_predictions() %>%
+    conf_mat(Winner, .pred_class)
+
+final_res_copy <- final_res %>%
+    collect_predictions()
+
+```
+
+```{r}
+write.csv(final_res_copy, "prediction.csv")
+```
+
+
+```{r}
+
+UFC_split1 <- initial_split(UFC_factors, prop = )
+
+UFC_rec2 <- recipe(Winner ~ ., data = UFC_split1)  %>% 
+  update_role(R_fighter,B_fighter,R_odds,B_odds,Spread,Anomaly,R_ev,B_ev,date, new_role = "ID") %>%
+  step_nzv(all_predictors()) %>% 
+  step_corr(all_numeric(), -all_outcomes()) %>% 
+  step_lincomb(all_numeric(), -all_outcomes()) %>% 
+  step_normalize(all_numeric(), -all_outcomes()) %>% 
+  step_dummy(all_nominal(), -all_outcomes(),-R_fighter,-B_fighter) 
+
+UFC_prep2 <- prep(UFC_rec2)
+juiced2 <- juice(UFC_prep2)
+```
+
+
+```{r}
+final_res <- final_wf %>%
+  last_fit(UFC_split)
+```
+
+
+```{r}
+```
+
+
+```{r}
+```
+
+
+```{r}
+```
+
+
+
+
+# XG Boost Model
+##Set Initial specs
+```{r}
+xgb_spec <- boost_tree(
+  trees = 1000, 
+  tree_depth = tune(), min_n = tune(), 
+  loss_reduction = tune(),                     ## first three: model complexity
+  sample_size = tune(), mtry = tune(),         ## randomness
+  learn_rate = tune(),                         ## step size
+) %>% 
+  set_engine("xgboost") %>% 
+  set_mode("classification")
+
+xgb_spec
+```
+
+##Setup Space filling parameter grid
+```{r}
+xgb_grid <- grid_latin_hypercube(
+  tree_depth(),
+  min_n(),
+  loss_reduction(),
+  sample_size = sample_prop(),
+  finalize(mtry(), juiced),
+  learn_rate(),
+  size = 30
+)
+
+xgb_grid
+```
+
+##Setup XGB Workflow
+```{r}
+xgb_wf <- workflow() %>%
+  add_formula(Winner ~ .) %>%
+  add_model(xgb_spec)
+
+xgb_wf
+```
+1014
+##Run XGB models (CV Folds Setup in previous RF model)
+```{r}
+set.seed(234)
+
+if(file.exists("XGBmodel1.rda")) {
+    ## load model
+    load("XGBmodel1.rda")
+} else {
+    ## (re)fit the model
+    xgb_res <- tune_grid(
+  xgb_wf,
+  resamples = UFC_folds,
+  grid = xgb_grid,
+  control = control_grid(save_pred = TRUE)
+)
+save(tune_res, file="XGBmodel2.rda")
+}
+
+
+xgb_res
+```
+1:54
+
+##Explore the metrics for all these models
+```{r}
+collect_metrics(xgb_res)
+```
+
+##Visualize AUC results
+```{r}
+xgb_res %>%
+  collect_metrics() %>%
+  filter(.metric == "roc_auc") %>%
+  select(mean, mtry:sample_size) %>%
+  pivot_longer(mtry:sample_size,
+               values_to = "value",
+               names_to = "parameter"
+  ) %>%
+  ggplot(aes(value, mean, color = parameter)) +
+  geom_point(alpha = 0.8, show.legend = FALSE) +
+  facet_wrap(~parameter, scales = "free_x") +
+  labs(x = NULL, y = "AUC")
+```
+
+##Show best AUC results
+```{r}
+show_best(xgb_res, "roc_auc")
+```
+
+##Select best XGB Model parameter
+```{r}
+best_auc_xgb <- select_best(xgb_res, "roc_auc")
+best_auc_xgb
+```
+
+##Create Finalized Workflow
+```{r}
+final_xgb <- finalize_workflow(
+  xgb_wf,
+  best_auc_xgb
+)
+
+final_xgb
+```
+
+##Fit Model on Training data
+```{r}
+final_xgb %>%
+  fit(data = juiced1) %>%
+  pull_workflow_fit() %>%
+  vip(geom = "point",num_features = 20)
+```
+
+##Evaluate Model Performance
+```{r}
+final_res_xgb <- last_fit(final_xgb, juiced1)
+
+collect_metrics(final_res)
+```
+221
+
+##Visualize Model Performance
+```{r}
+final_res_xgb %>%
+  collect_predictions() %>%
+  roc_curve(Winner, .pred_Blue) %>%
+  ggplot(aes(x = 1 - specificity, y = sensitivity)) +
+  geom_line(size = 1.5, color = "midnightblue") +
+  geom_abline(
+    lty = 2, alpha = 0.5,
+    color = "gray50",
+    size = 1.2
+  )
+```
+
+##XGB Confusion Matrix
+```{r}
+final_res_xgb %>%
+    collect_predictions() %>%
+    conf_mat(Winner, .pred_class)
+```
+
+#Stacked Models with H2o
+
+##Install Packages
+```{r}
+# Helper packages
+#install.packages("rsample")
+#install.packages("h2o")
+
+library(rsample)   # for creating our train-test splits
+
+# Modeling packages
+library(h2o)       # for fitting stacked models
+```
+
+```{r}
+UFC_recipe <- recipe(Winner ~ ., data = UFC_train) %>%
+  update_role(R_fighter,B_fighter,R_odds,B_odds,Spread,Anomaly,R_ev,B_ev,date, new_role = "ID") %>%
+  step_nzv(all_predictors()) %>% 
+  step_corr(all_numeric(), -all_outcomes()) %>% 
+  step_lincomb(all_numeric(), -all_outcomes()) %>% 
+  step_normalize(all_numeric(), -all_outcomes()) %>% 
+  step_dummy(all_nominal(), -all_outcomes(),-R_fighter,-B_fighter) 
+```
+
+
+```{r}
+# Create training & test sets for h2o
+h2o.init()
+train_h2o <- UFC_train %>%
+  as.h2o()
+test_h2o <-UFC_test %>%
+  as.h2o()
+```
+
+```{r}
+# Get response and feature names
+Y <- "Winner"
+X <- setdiff(names(juiced), Y)
+
+```
+
+
+```{r}
+# Train & cross-validate a GLM model
+best_glm <- h2o.glm(
+  x = X, y = Y, family="binomial",training_frame = train_h2o, alpha = 0.1,
+  remove_collinear_columns = TRUE, nfolds = 10, fold_assignment = "Modulo",
+  keep_cross_validation_predictions = TRUE, seed = 123
+)
+```
+```{r}
+h2o.confusionMatrix(best_glm,newdata = test_h2o,threshold=0.5)
+```
+```{r}
+h2o.explain(best_glm, test_h2o)
+```
+
+
+```{r}
+# Train & cross-validate a RF model
+best_rf <- h2o.randomForest(
+  x = X, y = Y, training_frame = train_h2o, ntrees = 1000, mtries = 20,
+  max_depth = 30, min_rows = 1, sample_rate = 0.8, nfolds = 10,
+  fold_assignment = "Modulo", keep_cross_validation_predictions = TRUE,
+  seed = 123, stopping_rounds = 50, stopping_metric = "misclassification",
+  stopping_tolerance = 0
+)
+```
+```{r}
+h2o.confusionMatrix(best_rf,newdata = test_h2o,threshold=0.5)
+```
+```{r}
+h2o.explain(best_rf, test_h2o)
+```
+
+
+```{r}
+# Train & cross-validate a GBM model
+best_gbm <- h2o.gbm(
+  x = X, y = Y, training_frame = train_h2o, ntrees = 5000, learn_rate = 0.01,
+  max_depth = 7, min_rows = 5, sample_rate = 0.8, nfolds = 10,
+  fold_assignment = "Modulo", keep_cross_validation_predictions = TRUE,
+  seed = 123, stopping_rounds = 50, stopping_metric = "misclassification",
+  stopping_tolerance = 0
+)
+```
+
+```{r}
+h2o.confusionMatrix(best_gbm,newdata = test_h2o,threshold=0.5)
+```
+
+```{r}
+h2o.explain(best_gbm, test_h2o)
+```
+
+```{r}
+# Train & cross-validate an XGBoost model
+
+bestDL <- h2o.deeplearning(x = X, 
+                       y = Y,
+                       distribution = "multinomial",
+                       hidden = c(3,5000),
+                       epochs = 1000,
+                       overwrite_with_best_model = TRUE,
+                       train_samples_per_iteration = -1,
+                       reproducible = TRUE,
+                       activation = "Rectifier",
+                       single_node_mode = FALSE,
+                       balance_classes = FALSE,
+                       force_load_balance = FALSE,
+                       seed = 123,
+                       training_frame = train_h2o,
+                       nfolds = 10,
+                       fold_assignment = "Modulo",
+                       keep_cross_validation_predictions = TRUE,
+                       stopping_metric = "misclassification")
+
+#best_xgb <- h2o.xgboost(
+ # x = X, y = Y, training_frame = train_h2o, ntrees = 5000, learn_rate = 0.05,
+  #max_depth = 3, min_rows = 3, sample_rate = 0.8, categorical_encoding = "Enum",
+  #nfolds = 10, fold_assignment = "Modulo", 
+  #keep_cross_validation_predictions = TRUE, seed = 123, stopping_rounds = 50,
+  #stopping_metric = "AUC", stopping_tolerance = 0
+#)
+```
+```{r}
+h2o.confusionMatrix(bestDL,newdata = test_h2o,threshold=0.5)
+```
+```{r}
+h2o.explain(bestDL, test_h2o)
+```
+
+```{r}
+# Train a stacked tree ensemble
+ensemble_tree <- h2o.stackedEnsemble(
+  x = X, y = Y, training_frame = train_h2o, model_id = "my_tree_ensemble",
+  base_models = list(best_glm, best_rf, best_gbm,bestDL),
+  metalearner_algorithm = "deeplearning"
+)
+```
+
+
+```{r}
+# Get results from base learners
+get_AUC <- function(model) {
+  results <- h2o.performance(model, newdata = test_h2o)
+  results@metrics$AUC
+}
+list(best_glm, best_rf, best_gbm,bestDL) %>%
+  purrr::map_dbl(get_AUC)
+## [1] 30024.67 23075.24 20859.92 21391.20
+
+# Stacked results
+h2o.performance(ensemble_tree, newdata = test_h2o)@metrics$AUC
+## [1] 20664.56
+```
+```{r}
+h2o.confusionMatrix(ensemble_tree,newdata = test_h2o,threshold=0.5)
+
+h2o.predict(ensemble_tree,newdata=test_h2o)
+
+h2o.explain(ensemble_tree, test_h2o)
+
+```
+
+
+
+```{r}
+```
+```{r}
+h2o.explain(best_rf, test_h2o)
+```
+
+
+```{r}
+aml <- h2o.automl(x = X, 
+                  y = Y,
+                  training_frame = train_h2o,
+                  max_models = 20,
+                  seed = 1)
+```
+
+```{r}
+lb <- aml@leaderboard
+print(lb, n = nrow(lb))
+```
+```{r}
+pred <- h2o.predict(aml, test_h2o)  # predict(aml, test) also works
+
+# or:
+pred <- h2o.predict(aml@leader, test_h2o)
+```
+
+
+```{r}
+lb <- h2o.get_leaderboard(object = aml, extra_columns = 'ALL')
+lb
+```
+
+
+```{r}
+h2o.explain(aml@leader, test_h2o)
+```
+
+
+```{r}
+h2o.explain(aml, test_h2o)
+```
+
+
+```{r}
+data.frame(
+  GLM_pred = as.vector(h2o.getFrame(best_glm@model$cross_validation_holdout_predictions_frame_id$name)),
+  RF_pred = as.vector(h2o.getFrame(best_rf@model$cross_validation_holdout_predictions_frame_id$name)),
+  GBM_pred = as.vector(h2o.getFrame(best_gbm@model$cross_validation_holdout_predictions_frame_id$name))
+) %>% cor()
+```
+
+
+```{r}
+# Define GBM hyperparameter grid
+hyper_grid <- list(
+  max_depth = c(1, 3, 5),
+  min_rows = c(1, 5, 10),
+  learn_rate = c(0.01, 0.05, 0.1),
+  learn_rate_annealing = c(0.99, 1),
+  sample_rate = c(0.5, 0.75, 1),
+  col_sample_rate = c(0.8, 0.9, 1)
+)
+
+# Define random grid search criteria
+search_criteria <- list(
+  strategy = "RandomDiscrete",
+  max_models = 25
+)
+
+# Build random grid search 
+random_grid <- h2o.grid(
+  algorithm = "gbm", grid_id = "gbm_grid", x = X, y = Y,
+  training_frame = train_h2o, hyper_params = hyper_grid,
+  search_criteria = search_criteria, ntrees = 5000, stopping_metric = "AUC",     
+  stopping_rounds = 10, stopping_tolerance = 0, nfolds = 10, 
+  fold_assignment = "Modulo", keep_cross_validation_predictions = TRUE,
+  seed = 123
+)
+```
+
+
+```{r}
+# Sort results by RMSE
+h2o.getGrid(
+  grid_id = "gbm_grid", 
+  sort_by = "AUC"
+)
+```
+
+```{r}
+# Grab the model_id for the top model, chosen by validation error
+best_model_id <- random_grid@model_ids[[1]]
+best_model <- h2o.getModel(best_model_id)
+h2o.performance(best_model, newdata = test_h2o)
+```
+
+
+```{r}
+# Train a stacked ensemble using the GBM grid
+ensemble <- h2o.stackedEnsemble(
+  x = X, y = Y, training_frame = train_h2o, model_id = "ensemble_gbm_grid",
+  base_models = random_grid@model_ids, metalearner_algorithm = "gbm"
+)
+
+# Eval ensemble performance on a test set
+h2o.performance(ensemble, newdata = test_h2o)
+```
+
+#Neural Network
+```{r}
+#Neural Network
+install.packages("nnet")
+library(nnet)
+#Build the model
+model <- nnet(Winner~.,data=juiced,size = 4,decay = 0.0001,maxit = 500)
+```
+
+
+```{r}
+summary(model)
+```
+
+
+```{r}
+summary(model$residuals)
+```
+
+
+```{r}
+juiced$pred_nnet<-predict(model,juiced,type="class")
+```
+
+
+```{r}
+
+mtab<-table(juiced$pred_nnet,juiced$Winner)
+confusionMatrix(mtab)
+```
+
+
+```{r}
+Pred_Odds <- read_csv("ufc-master-clean WITH ODDS.csv")
+```
+```{r}
+Anomaly	R_ev	B_ev	R_Pred	B_Pred	R_implied_prob	B_implied_prob
+
+Pred_Odds <- Pred_Odds %>% pivot_wider(names_from = Attribute, values_from = Value)
+```
+
+
+```{r}
+Pred_Odds %>% select(Anomaly,	R_Pred,	B_Pred,	R_implied_prob,	B_implied_prob) %>% 
+  drop_na(R_Pred,B_Pred) %>% 
+  ggplot(aes(x=R_Pred, y=R_implied_prob, color=as.factor(Anomaly))) +
+  geom_point()
+```
+
+```{r}
+Pred_Odds %>% select(Anomaly,R_Pred,R_2ximp,	R_MSE) %>% 
+  drop_na(R_MSE) %>% 
+  ggplot(aes(x=R_MSE, y=R_2ximp,color=as.factor(Anomaly))) +
+  geom_point(alpha = 0.4)
+
+```
+```{r}
+Pred_Odds %>% select(Anomaly,R_Pred,R_2ximp,	R_MSE) %>% 
+  drop_na(R_MSE) %>% 
+  filter(Anomaly == 1) %>% 
+  ggplot(aes(x=,R_Pred, color=R_2ximp,y=R_MSE)) +
+  geom_point(alpha = 0.4)
+```
+
+```{r}
+library(plotly)
+
+ Pred_Odds %>%
+   select(Anomaly,R_Pred,R_2ximp,	R_MSE) %>% 
+   drop_na(R_MSE) %>%
+   plot_ly(x = ~R_2ximp,
+         y = ~R_Pred,
+         type = 'scatter' ,
+         mode = 'markers' ,
+         size = ~R_MSE,
+         marker = list(
+         color = ~Anomaly)
+         )
+
+
+```
+
+```{r}
+library(rgl)
+Prob_Odds<-Pred_Odds %>%
+   select(Anomaly,R_Pred,R_2ximp,	R_MSE) %>% 
+   drop_na(R_MSE) %>%
+   rename(
+    Prediction = R_Pred,
+    Implied_Odds = R_2ximp,	
+    MSE_Diff = R_MSE) 
+
+Prob_Odds$Anomaly[which(Prob_Odds$Anomaly == 0)] <- 'Normal'
+Prob_Odds$Anomaly[which(Prob_Odds$Anomaly == 1)] <- 'Anomaly'
+Prob_Odds$Anomaly <- as.factor(Prob_Odds$Anomaly)
+
+fig<-   plot_ly(Prob_Odds,
+           x = ~Implied_Odds,
+         y = ~Prediction,
+         z = ~MSE_Diff,
+         #type = 'scatter3d' ,
+         colors = c('#BF382A', '#0C4B8E'),
+         color = ~Anomaly,
+         size=1000
+         )
+fig <- fig %>% add_markers()
+fig
+
+ 
+```
+

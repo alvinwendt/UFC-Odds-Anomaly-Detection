@@ -52,30 +52,6 @@ plot_correlate(data_raw)
 ```
 
 
-```{r}
-```
-
-
-```{r}
-```
-
-
-```{r}
-```
-
-
-```{r}
-```
-
-
-```{r}
-```
-
-
-```{r}
-```
-
-
 Spread Vs Anomalies
 ```{r}
 data_raw %>%
@@ -84,7 +60,33 @@ data_raw %>%
     scale_fill_manual(values=c("#69b3a2", "#404080")) +
     labs(fill="")
 ```
+```{r}
+data_raw %>% ggplot(aes(x=Spread,  fill=as.factor(Anomaly))) + 
+    geom_histogram(data=subset(data_raw,Anomaly == "0"),fill = "red", alpha = 0.4,bins = 70) +
+    geom_histogram(data=subset(data_raw,Anomaly == "1"),fill = "blue", alpha = 0.2,bins = 70) +
+      coord_cartesian(xlim = c(325, 3000))
+```
 
+```{r}
+data_raw %>% ggplot(aes(x=Spread,y=stat(count)/sum(stat(count)),  fill=as.factor(Anomaly))) + 
+    geom_histogram(data=subset(data_raw,Anomaly == "0"),fill = "red", alpha = 0.4,bins = 70) +
+    geom_histogram(data=subset(data_raw,Anomaly == "1"),fill = "blue", alpha = 0.2,bins = 70) +
+      coord_cartesian(xlim = c(325, 3000))
+ 
+```
+
+```{r}
+data_raw %>%
+  group_by(Spread,Anomaly) %>% 
+  summarise(n = n()) %>% 
+  mutate(freq = n / sum(n)) %>% 
+  ggplot(aes(x=Spread, y=freq, fill=as.factor(Anomaly))) +
+    geom_area(position = 'fill') +
+    #scale_fill_manual(values=c("Red", "Blue")) +
+      coord_cartesian(xlim = c(325, 3000)) + 
+  labs(title = "Proportion of Odds per Spread",y="Proportion",fill = NULL)+
+  scale_color_manual(labels = c("Favorite", "Underdog"), values = c("blue", "red"))+ scale_fill_brewer(palette = "Set1") 
+```
 
 ```{r}
 
@@ -113,60 +115,5 @@ ggplot(rankImportance, aes(x = reorder(Variables, Importance),
   labs(x = 'Variables') +
   coord_flip() + 
   theme_classic()
-```
-
-
-```{r}
-
-```
-
-
-```{r}
-
-```
-
-
-```{r}
-
-```
-
-
-```{r}
-
-```
-
-
-```{r}
-
-```
-
-
-```{r}
-
-```
-
-
-```{r}
-
-```
-
-
-```{r}
-
-```
-
-
-```{r}
-
-```
-
-
-```{r}
-
-```
-
-
-```{r}
-
 ```
 
