@@ -1,5 +1,5 @@
 
-# UFC Odds Anomaly Detection (Capstone)
+# UFC Odds Anomaly Detection
 
 <p align="center">
   <a href="" rel="noopener">
